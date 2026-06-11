@@ -1,0 +1,18 @@
+{
+  "name": "word-search-minigame",
+  "version": "3.8.8",
+  "private": true,
+  "description": "Word Search MVP for Cocos Creator, WeChat Mini Game and Douyin Mini Game.",
+  "scripts": {
+    "generate:levels": "node tools/generate-levels.mjs",
+    "preview:web": "python3 -m http.server 8080",
+    "test": "node test/core-logic.test.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  },
+  "creator": {
+    "version": "3.8.8"
+  },
+  "uuid": "439adb72-3a4a-4846-b23a-b97b0230d66d"
+}

@@ -1,0 +1,95 @@
+{
+  "__version__": "1.3.9",
+  "log": {
+    "level": 1
+  },
+  "common": {
+    "binGroupConfig": {
+      "threshold": 16,
+      "enable": false
+    },
+    "polyfills": {
+      "asyncFunctions": true
+    },
+    "name": "word-search-game",
+    "buildPath": "project://build",
+    "outputName": "wechatgame",
+    "mainBundleCompressionType": "merge_dep",
+    "platform": "wechatgame"
+  },
+  "BuildTaskManager": {
+    "taskMap": {
+      "1781144666844": {
+        "type": "build",
+        "id": "1781144666844",
+        "progress": 1,
+        "state": "success",
+        "stage": "build",
+        "message": "2026-6-11 10:24:37 build success in 10 s!",
+        "detailMessage": "// ---- build task cocos-service：onAfterBuild ----\r",
+        "options": {
+          "name": "word-search-minigame",
+          "server": "",
+          "engineModulesConfigKey": "defaultConfig",
+          "platform": "wechatgame",
+          "buildPath": "project://build",
+          "debug": false,
+          "buildMode": "normal",
+          "mangleProperties": false,
+          "md5Cache": false,
+          "skipCompressTexture": false,
+          "sourceMaps": false,
+          "overwriteProjectSettings": {
+            "macroConfig": {
+              "cleanupImageCache": "on"
+            },
+            "includeModules": {
+              "physics": "inherit-project-setting",
+              "physics-2d": "inherit-project-setting",
+              "gfx-webgl2": "off"
+            }
+          },
+          "nativeCodeBundleMode": "wasm",
+          "polyfills": {
+            "asyncFunctions": false
+          },
+          "experimentalEraseModules": false,
+          "startSceneAssetBundle": false,
+          "bundleConfigs": [],
+          "inlineEnum": true,
+          "useBuiltinServer": false,
+          "md5CacheOptions": {
+            "excludes": [],
+            "includes": [],
+            "replaceOnly": [],
+            "handleTemplateMd5Link": true
+          },
+          "mainBundleIsRemote": false,
+          "mainBundleCompressionType": "merge_dep",
+          "useSplashScreen": true,
+          "bundleCommonChunk": false,
+          "packAutoAtlas": true,
+          "startScene": "3e316ecf-344c-4026-97ca-f952fb4f397d",
+          "outputName": "wechatgame",
+          "taskName": "wechatgame",
+          "scenes": [
+            {
+              "url": "db://assets/scenes/Main.scene",
+              "uuid": "3e316ecf-344c-4026-97ca-f952fb4f397d"
+            }
+          ],
+          "wasmCompressionMode": false,
+          "binGroupConfig": {
+            "threshold": 16,
+            "enable": false
+          },
+          "packages": {},
+          "__version__": "1.3.9",
+          "logDest": "project://temp/builder/log/wechatgame6-11-2026 10-24.log"
+        },
+        "time": "6-11-2026 10:24:26",
+        "dirty": false
+      }
+    }
+  }
+}

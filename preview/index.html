@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Word Search Preview</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="topbar">
+        <div>
+          <h1>Word Search</h1>
+          <p id="status">Loading...</p>
+        </div>
+        <div class="stats">
+          <span id="coin">0</span>
+          <span id="hintCount">0</span>
+        </div>
+      </header>
+
+      <section id="words" class="words"></section>
+      <section id="board" class="board"></section>
+
+      <footer class="actions">
+        <button id="hintButton">提示</button>
+        <button id="restartButton">重开</button>
+        <button id="nextButton">下一关</button>
+      </footer>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

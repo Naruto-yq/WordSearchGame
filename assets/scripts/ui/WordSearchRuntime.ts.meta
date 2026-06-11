@@ -1,0 +1,13 @@
+{
+  "ver": "4.0.24",
+  "importer": "typescript",
+  "imported": true,
+  "uuid": "6c1c9bd2-2e6f-43fb-9d37-1ac76f62d6f3",
+  "files": [],
+  "subMetas": {},
+  "userData": {
+    "moduleId": "project:///assets/scripts/ui/WordSearchRuntime.js",
+    "importerSettings": 4,
+    "simulateGlobals": []
+  }
+}
