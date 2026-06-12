@@ -1,19 +1,10 @@
 const SAVE_KEY = 'WORD_SEARCH_PREVIEW_SAVE';
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-const WORD_BANK = [
-  'CAT', 'DOG', 'SUN', 'MAP', 'SKY', 'KEY', 'BEE', 'CAR', 'BUS', 'CUP', 'HAT', 'BOX',
-  'BIRD', 'FISH', 'TREE', 'MOON', 'STAR', 'RAIN', 'WIND', 'BOOK', 'GAME', 'WORD', 'HOME', 'CAKE',
-  'APPLE', 'BEACH', 'LIGHT', 'SMILE', 'GREEN', 'CHAIR', 'TABLE', 'MUSIC', 'RIVER', 'STONE', 'GRASS',
-  'PLANET', 'FOREST', 'PUZZLE', 'MARKET', 'GARDEN', 'ORANGE', 'POCKET', 'SUMMER', 'WINTER', 'SPRING',
-  'FLOWER', 'BRIDGE', 'CASTLE', 'DRAGON', 'BUTTON', 'COFFEE', 'COOKIE', 'SILVER', 'YELLOW', 'PURPLE',
-  'ANIMAL', 'FRIEND', 'ISLAND', 'JUNGLE', 'ROCKET', 'SCHOOL', 'TUNNEL', 'WINDOW', 'FAMILY', 'MONKEY',
-  'ADVENTURE', 'BACKPACK', 'CALENDAR', 'DIAMOND', 'ELEPHANT', 'FESTIVAL', 'HOSPITAL', 'KEYBOARD',
-  'LANGUAGE', 'MOUNTAIN', 'NOTEBOOK', 'PAINTING', 'QUESTION', 'RAINBOW', 'SANDWICH', 'TREASURE',
-  'UMBRELLA', 'VACATION', 'WILDLIFE', 'SUNLIGHT', 'SEASHELL', 'BASEBALL', 'CAMPFIRE', 'AIRPLANE',
-  'STARFISH', 'SNOWBALL', 'FIREFLY', 'DAYDREAM', 'LIFELONG', 'WATERMELON', 'BLACKBOARD',
-  'TOOTHBRUSH', 'PLAYGROUND', 'BASKETBALL', 'SKATEBOARD', 'HELICOPTER', 'LIGHTHOUSE', 'FRIENDSHIP',
-  'ADVENTURES', 'SKYSCRAPER', 'PHOTOGRAPH', 'WONDERLAND', 'DRAGONFRUIT', 'CELEBRATION', 'IMAGINATION',
-];
+const FIRST_LEVEL_WORDS = ['CAT', 'DOG', 'SUN', 'CAR'];
+const ROLLER_COASTER_WAVE = [1, 2, 3, 4, 5, 4, 2, 3, 4, 5, 5, 3];
+let WORD_BANK = [];
+let LEVEL_WORDS_CACHE = null;
+const RANGE_POOL_CACHE = new Map();
 
 const state = {
   level: null,
@@ -38,7 +29,20 @@ els.hintButton.addEventListener('click', onHint);
 els.restartButton.addEventListener('click', () => startLevel(state.save.currentLevel));
 els.nextButton.addEventListener('click', () => startLevel(state.save.currentLevel));
 
-startLevel(state.save.currentLevel);
+init();
+
+async function init() {
+  await loadWordBank();
+  startLevel(state.save.currentLevel);
+}
+
+async function loadWordBank() {
+  const response = await fetch('../assets/scripts/core/WordBank.ts');
+  const text = await response.text();
+  WORD_BANK = [...text.matchAll(/"([A-Z]+)"/g)].map((match) => match[1]);
+  LEVEL_WORDS_CACHE = null;
+  RANGE_POOL_CACHE.clear();
+}
 
 async function startLevel(levelId) {
   state.level = createLevel(levelId);
@@ -102,13 +106,12 @@ function maxWordLengthFor(id, boardSize, minLength) {
 }
 
 function wavePhaseFor(id) {
-  return (id - 1) % 12;
+  return (id - 1) % ROLLER_COASTER_WAVE.length;
 }
 
 function difficultyRankFor(id) {
-  const wave = [1, 2, 3, 4, 5, 4, 2, 3, 4, 5, 5, 3];
   const progressBonus = Math.floor((id - 1) / 250);
-  const base = wave[wavePhaseFor(id)];
+  const base = ROLLER_COASTER_WAVE[wavePhaseFor(id)];
   const bonusCap = base <= 2 ? 1 : base === 3 ? 2 : base === 4 ? 1 : 0;
   return clamp(base + Math.min(progressBonus, bonusCap), 1, 5);
 }
@@ -119,17 +122,112 @@ function isPeakLevel(id) {
 }
 
 function takeWords(id, count, minLength, maxLength) {
-  const pool = WORD_BANK.filter((word) => word.length >= minLength && word.length <= maxLength);
-  const words = [];
-  let cursor = (id * 7) % pool.length;
-  let guard = 0;
-  while (words.length < count && guard < pool.length * 3) {
-    const word = pool[cursor % pool.length];
-    if (!words.includes(word)) words.push(word);
-    cursor += 5;
-    guard += 1;
+  return getLevelWords(id, count, minLength, maxLength);
+}
+
+function getLevelWords(id) {
+  if (!LEVEL_WORDS_CACHE) LEVEL_WORDS_CACHE = buildLevelWords();
+  return [...LEVEL_WORDS_CACHE[id - 1]];
+}
+
+function buildLevelWords() {
+  const usedWords = new Set();
+  const rangeCursors = new Map();
+  const levels = [];
+
+  for (let level = 1; level <= 1000; level += 1) {
+    const boardSize = boardSizeFor(level);
+    const minLength = minWordLengthFor(level);
+    const maxLength = maxWordLengthFor(level, boardSize, minLength);
+    const count = wordCountFor(level);
+    const localWords = new Set();
+    const words = [];
+
+    if (level === 1) {
+      for (const word of FIRST_LEVEL_WORDS) {
+        if (words.length >= count) break;
+        if (canUseWord(word, minLength, maxLength, localWords)) {
+          addLevelWord(words, usedWords, localWords, word);
+        }
+      }
+    }
+
+    while (words.length < count) {
+      const word = pickWord(level, words.length, minLength, maxLength, usedWords, localWords, rangeCursors);
+      if (!word) throw new Error(`Unable to pick enough words for level ${level}`);
+      addLevelWord(words, usedWords, localWords, word);
+    }
+
+    levels.push(words);
   }
-  return words;
+
+  return levels;
+}
+
+function addLevelWord(words, usedWords, localWords, word) {
+  words.push(word);
+  usedWords.add(word);
+  localWords.add(word);
+}
+
+function canUseWord(word, minLength, maxLength, localWords) {
+  return word.length >= minLength && word.length <= maxLength && !localWords.has(word);
+}
+
+function pickWord(level, slot, minLength, maxLength, usedWords, localWords, rangeCursors) {
+  const key = `${minLength}-${maxLength}`;
+  const pool = getRangePool(minLength, maxLength);
+  if (pool.length === 0) return undefined;
+
+  const startCursor = rangeCursors.has(key) ? rangeCursors.get(key) : hashString(`${key}:${level}:${slot}`) % pool.length;
+  const unusedWord = scanPool(pool, startCursor, localWords, usedWords, false);
+  if (unusedWord) {
+    rangeCursors.set(key, (unusedWord.index + 1) % pool.length);
+    return unusedWord.word;
+  }
+
+  const reusableWord = scanPool(pool, startCursor, localWords, usedWords, true);
+  if (reusableWord) {
+    rangeCursors.set(key, (reusableWord.index + 1) % pool.length);
+    return reusableWord.word;
+  }
+
+  return undefined;
+}
+
+function scanPool(pool, startCursor, localWords, usedWords, allowPreviouslyUsed) {
+  for (let offset = 0; offset < pool.length; offset += 1) {
+    const index = (startCursor + offset) % pool.length;
+    const word = pool[index];
+    if (localWords.has(word)) continue;
+    if (!allowPreviouslyUsed && usedWords.has(word)) continue;
+    return { word, index };
+  }
+  return undefined;
+}
+
+function getRangePool(minLength, maxLength) {
+  const key = `${minLength}-${maxLength}`;
+  if (RANGE_POOL_CACHE.has(key)) return RANGE_POOL_CACHE.get(key);
+
+  const pool = WORD_BANK
+    .filter((word) => word.length >= minLength && word.length <= maxLength)
+    .sort((left, right) => {
+      const score = hashString(`${key}:${left}`) - hashString(`${key}:${right}`);
+      return score === 0 ? left.localeCompare(right) : score;
+    });
+
+  RANGE_POOL_CACHE.set(key, pool);
+  return pool;
+}
+
+function hashString(input) {
+  let hash = 2166136261;
+  for (let index = 0; index < input.length; index += 1) {
+    hash ^= input.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
 }
 
 function generateBoard(level) {

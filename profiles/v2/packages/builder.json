@@ -19,14 +19,14 @@
   },
   "BuildTaskManager": {
     "taskMap": {
-      "1781144666844": {
+      "1781229425507": {
         "type": "build",
-        "id": "1781144666844",
+        "id": "1781229425507",
         "progress": 1,
         "state": "success",
         "stage": "build",
-        "message": "2026-6-11 10:24:37 build success in 10 s!",
-        "detailMessage": "// ---- build task cocos-service：onAfterBuild ----\r",
+        "message": "2026-6-12 09:57:15 build success in 10 s!",
+        "detailMessage": "// ---- build task wechatgame：onBeforeCopyBuildTemplate ----\r",
         "options": {
           "name": "word-search-minigame",
           "server": "",
@@ -85,9 +85,9 @@
           },
           "packages": {},
           "__version__": "1.3.9",
-          "logDest": "project://temp/builder/log/wechatgame6-11-2026 10-24.log"
+          "logDest": "project://temp/builder/log/wechatgame6-12-2026 09-57.log"
         },
-        "time": "6-11-2026 10:24:26",
+        "time": "6-12-2026 09:57:05",
         "dirty": false
       }
     }

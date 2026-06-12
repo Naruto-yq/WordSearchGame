@@ -9,8 +9,8 @@
 - 管理层：`GameManager`、`LevelManager`、`BoardManager`、`WordManager`、`StorageManager`、`AdManager`、`AudioManager`。
 - 平台适配：微信、抖音、Web 调试统一 `IPlatform` 接口。
 - UI 入口：启动页、首页、关卡选择、游戏页、结算页、设置页组件脚本。
-- 配置：运行时生成 1000 关，不再把关卡 JSON 打进小游戏主包。
-- 测试：核心棋盘和触摸路径逻辑测试。
+- 配置：运行时通过公共 `LevelGenerator` 生成 1000 关，使用约 15000 词的大词库，不再把关卡 JSON 打进小游戏主包。
+- 测试：核心棋盘、触摸路径逻辑、1000 关单词重复率测试。
 
 ## 目录
 

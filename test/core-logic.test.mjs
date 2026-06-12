@@ -17,9 +17,26 @@ execFileSync(join(root, 'node_modules/.bin/tsc'), [
 ], { stdio: 'inherit' });
 
 const { BoardManager } = require(join(outDir, 'manager/BoardManager.js'));
+const { getLevelRepeatStats } = require(join(outDir, 'core/LevelGenerator.js'));
 const { LevelManager } = require(join(outDir, 'manager/LevelManager.js'));
 const { WordManager } = require(join(outDir, 'manager/WordManager.js'));
 const { TouchController } = require(join(outDir, 'game/TouchController.js'));
+
+const stats = getLevelRepeatStats();
+assert.equal(stats.levels, 1000);
+assert.ok(
+  stats.repeatRate <= 0.1,
+  `level word repeat rate should be <= 10%, got ${(stats.repeatRate * 100).toFixed(2)}%`,
+);
+
+const levelManager = new LevelManager();
+for (let levelId = 1; levelId <= 1000; levelId += 1) {
+  const config = await levelManager.loadLevel(levelId);
+  assert.equal(new Set(config.words).size, config.words.length, `level ${levelId} should not repeat words inside the level`);
+  for (const word of config.words) {
+    assert.ok(word.length <= config.boardSize, `${word} should fit level ${levelId} board`);
+  }
+}
 
 const level = await new LevelManager().loadLevel(1);
 const boardManager = new BoardManager();
