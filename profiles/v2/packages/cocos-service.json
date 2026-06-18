@@ -8,7 +8,8 @@
       },
       "wechatgame": {
         "configID": "ee6d7e",
-        "services": []
+        "services": [],
+        "__version__": "3.0.9"
       }
     },
     "taskOptionsMap": {
@@ -32,6 +33,66 @@
         "__version__": "3.0.9"
       },
       "1781229425507": {
+        "configID": "ee6d7e",
+        "services": [],
+        "__version__": "3.0.9"
+      },
+      "1781266108193": {
+        "configID": "ee6d7e",
+        "services": [],
+        "__version__": "3.0.9"
+      },
+      "1781266900274": {
+        "configID": "ee6d7e",
+        "services": [],
+        "__version__": "3.0.9"
+      },
+      "1781666101618": {
+        "configID": "ee6d7e",
+        "services": [],
+        "__version__": "3.0.9"
+      },
+      "1781666614870": {
+        "configID": "ee6d7e",
+        "services": [],
+        "__version__": "3.0.9"
+      },
+      "1781667004751": {
+        "configID": "ee6d7e",
+        "services": [],
+        "__version__": "3.0.9"
+      },
+      "1781668077341": {
+        "configID": "ee6d7e",
+        "services": [],
+        "__version__": "3.0.9"
+      },
+      "1781668363527": {
+        "configID": "ee6d7e",
+        "services": [],
+        "__version__": "3.0.9"
+      },
+      "1781668438343": {
+        "configID": "ee6d7e",
+        "services": [],
+        "__version__": "3.0.9"
+      },
+      "1781669096826": {
+        "configID": "ee6d7e",
+        "services": [],
+        "__version__": "3.0.9"
+      },
+      "1781669272050": {
+        "configID": "ee6d7e",
+        "services": [],
+        "__version__": "3.0.9"
+      },
+      "1781680522094": {
+        "configID": "ee6d7e",
+        "services": [],
+        "__version__": "3.0.9"
+      },
+      "1781683942403": {
         "configID": "ee6d7e",
         "services": [],
         "__version__": "3.0.9"

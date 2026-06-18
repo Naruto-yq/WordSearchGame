@@ -7,9 +7,12 @@
         "enable": false
       },
       "buildPath": "project://build",
-      "outputName": "wechatgame",
-      "mainBundleCompressionType": "merge_dep",
-      "platform": "wechatgame"
+      "outputName": "zhaocidashi",
+      "mainBundleCompressionType": "none",
+      "platform": "wechatgame",
+      "startSceneAssetBundle": false,
+      "mainBundleIsRemote": false,
+      "md5Cache": true
     },
     "options": {
       "wechatgame": {
@@ -60,6 +63,114 @@
         "wasmSubpackage": false
       },
       "1781229425507": {
+        "orientation": "portrait",
+        "appid": "wxa7135145ff20bf6e",
+        "buildOpenDataContextTemplate": "",
+        "separateEngine": false,
+        "highPerformanceMode": false,
+        "__version__": "1.0.4",
+        "wasmSubpackage": false
+      },
+      "1781266108193": {
+        "orientation": "portrait",
+        "appid": "wxa7135145ff20bf6e",
+        "buildOpenDataContextTemplate": "",
+        "separateEngine": true,
+        "highPerformanceMode": false,
+        "__version__": "1.0.4",
+        "wasmSubpackage": false
+      },
+      "1781266900274": {
+        "orientation": "portrait",
+        "appid": "wxa7135145ff20bf6e",
+        "buildOpenDataContextTemplate": "",
+        "separateEngine": true,
+        "highPerformanceMode": false,
+        "__version__": "1.0.4",
+        "wasmSubpackage": false
+      },
+      "1781666101618": {
+        "orientation": "portrait",
+        "appid": "wxa7135145ff20bf6e",
+        "buildOpenDataContextTemplate": "",
+        "separateEngine": true,
+        "highPerformanceMode": false,
+        "__version__": "1.0.4",
+        "wasmSubpackage": false
+      },
+      "1781666614870": {
+        "orientation": "portrait",
+        "appid": "wxa7135145ff20bf6e",
+        "buildOpenDataContextTemplate": "",
+        "separateEngine": true,
+        "highPerformanceMode": false,
+        "__version__": "1.0.4",
+        "wasmSubpackage": false
+      },
+      "1781667004751": {
+        "orientation": "portrait",
+        "appid": "wxa7135145ff20bf6e",
+        "buildOpenDataContextTemplate": "",
+        "separateEngine": false,
+        "highPerformanceMode": false,
+        "__version__": "1.0.4",
+        "wasmSubpackage": false
+      },
+      "1781668077341": {
+        "orientation": "portrait",
+        "appid": "wxa7135145ff20bf6e",
+        "buildOpenDataContextTemplate": "",
+        "separateEngine": false,
+        "highPerformanceMode": false,
+        "__version__": "1.0.4",
+        "wasmSubpackage": false
+      },
+      "1781668363527": {
+        "orientation": "portrait",
+        "appid": "wxa7135145ff20bf6e",
+        "buildOpenDataContextTemplate": "",
+        "separateEngine": false,
+        "highPerformanceMode": false,
+        "__version__": "1.0.4",
+        "wasmSubpackage": false
+      },
+      "1781668438343": {
+        "orientation": "portrait",
+        "appid": "wxa7135145ff20bf6e",
+        "buildOpenDataContextTemplate": "",
+        "separateEngine": false,
+        "highPerformanceMode": false,
+        "__version__": "1.0.4",
+        "wasmSubpackage": false
+      },
+      "1781669096826": {
+        "orientation": "portrait",
+        "appid": "wxa7135145ff20bf6e",
+        "buildOpenDataContextTemplate": "",
+        "separateEngine": false,
+        "highPerformanceMode": false,
+        "__version__": "1.0.4",
+        "wasmSubpackage": false
+      },
+      "1781669272050": {
+        "orientation": "portrait",
+        "appid": "wxa7135145ff20bf6e",
+        "buildOpenDataContextTemplate": "",
+        "separateEngine": false,
+        "highPerformanceMode": false,
+        "__version__": "1.0.4",
+        "wasmSubpackage": false
+      },
+      "1781680522094": {
+        "orientation": "portrait",
+        "appid": "wxa7135145ff20bf6e",
+        "buildOpenDataContextTemplate": "",
+        "separateEngine": false,
+        "highPerformanceMode": false,
+        "__version__": "1.0.4",
+        "wasmSubpackage": false
+      },
+      "1781683942403": {
         "orientation": "portrait",
         "appid": "wxa7135145ff20bf6e",
         "buildOpenDataContextTemplate": "",

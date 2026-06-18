@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const levelsDir = join(root, 'tools/generated-levels');
 const outDir = join(root, '.tmp/generated-levels-dist');
-const maxLevel = 1000;
+const maxLevel = 300;
 const require = createRequire(import.meta.url);
 
 await rm(outDir, { recursive: true, force: true });

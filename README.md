@@ -9,8 +9,8 @@
 - 管理层：`GameManager`、`LevelManager`、`BoardManager`、`WordManager`、`StorageManager`、`AdManager`、`AudioManager`。
 - 平台适配：微信、抖音、Web 调试统一 `IPlatform` 接口。
 - UI 入口：启动页、首页、关卡选择、游戏页、结算页、设置页组件脚本。
-- 配置：运行时通过公共 `LevelGenerator` 生成 1000 关，使用约 15000 词的大词库，不再把关卡 JSON 打进小游戏主包。
-- 测试：核心棋盘、触摸路径逻辑、1000 关单词重复率测试。
+- 配置：运行时通过公共 `LevelGenerator` 生成 300 关，使用公共词库，不再把关卡 JSON 打进小游戏主包。
+- 测试：核心棋盘、触摸路径逻辑、300 关单词重复率测试。
 
 ## 目录
 
@@ -39,6 +39,27 @@ npm install
 npm test
 npx tsc --noEmit
 ```
+
+## 微信小游戏构建
+
+1. 用 Cocos Creator 构建 `wechatgame`，或执行：
+
+```bash
+/Applications/Cocos/Creator/3.8.8/CocosCreator.app/Contents/MacOS/CocosCreator --project "$(pwd)" --build "configPath=$(pwd)/build/buildConfig_wechatgame.json"
+```
+
+2. 构建完成后确认包体和裁剪结果：
+
+```bash
+du -sh build/zhaocidashi
+find build/zhaocidashi -type f | grep -E 'bullet|physics|spine'
+```
+
+上面的 `find` 命令正常应当没有输出，当前验证包体约 `2.2M`。
+
+3. 用微信开发者工具打开 `build/zhaocidashi` 后再预览或上传。
+
+当前验证配置不使用资源分包，也不使用 Cocos 引擎插件分离。构建配置会裁剪到 2D 所需引擎模块，排除物理、Spine、DragonBones、视频、WebView 等模块。单词发音使用在线音频，真机发布前需要在微信公众平台后台把 `https://fanyi.baidu.com` 加到 `downloadFile` 合法域名。
 
 ## 浏览器预览
 

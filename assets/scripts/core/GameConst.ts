@@ -1,5 +1,5 @@
 export const SAVE_KEY = 'WORD_SEARCH_SAVE_DATA';
-export const MAX_LEVEL = 1000;
+export const MAX_LEVEL = 300;
 export const DEFAULT_HINT_COUNT = 3;
 export const BASE_REWARD_COIN = 20;
 

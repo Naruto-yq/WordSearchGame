@@ -14,6 +14,7 @@ import {
   Vec3,
 } from 'cc';
 import { createLevelSpec, difficultyRankFor } from '../core/LevelGenerator';
+import { getWordMeaning, preloadWordMeanings } from '../core/WordMeaning';
 import { PlatformFactory } from '../platform/PlatformFactory';
 
 const { ccclass } = _decorator;
@@ -43,7 +44,7 @@ interface CanvasBounds {
   bottom: number;
 }
 
-const MAX_LEVELS = 1000;
+const MAX_LEVELS = 300;
 const MAX_LIVES = 3;
 const MAX_STAMINA = 10;
 const STAMINA_RECOVER_MS = 5 * 60 * 1000;
@@ -56,6 +57,7 @@ const BACKGROUND_BLUE = [142, 204, 244];
 const DARK_BLUE = [25, 73, 146];
 const SELECT_FALLBACK = [255, 209, 75];
 const PATH_ALPHA = 255;
+const FAILURE_MESSAGE = '挑战失败，继续加油！';
 const FLAT_PALETTE = [
   [255, 190, 62],
   [85, 191, 255],
@@ -132,6 +134,9 @@ export class MainBootstrap extends Component {
   private status?: Label;
   private timerLabel?: Label;
   private homeLevelLabel?: Label;
+  private staminaPanelNode?: Node;
+  private staminaPanel?: Graphics;
+  private staminaIconNode?: Node;
   private staminaLabel?: Label;
   private staminaRecoverLabel?: Label;
   private wordLabels = new Map<string, Label>();
@@ -139,6 +144,7 @@ export class MainBootstrap extends Component {
   private boardRoot?: Node;
   private pathGraphics?: Graphics;
   private toastNode?: Node;
+  private meaningToastNode?: Node;
   private modalNode?: Node;
   private rewardNode?: Node;
   private nextButton?: Node;
@@ -152,6 +158,7 @@ export class MainBootstrap extends Component {
 
   start(): void {
     this.platform.init();
+    preloadWordMeanings();
     this.loadProgress();
     this.showHome();
   }
@@ -171,7 +178,7 @@ export class MainBootstrap extends Component {
     this.timerRemaining = Math.max(0, this.timerRemaining - deltaTime);
     this.refreshTimer();
     if (this.timerRemaining <= 0) {
-      this.failGame('时间耗尽，挑战失败');
+      this.failGame();
     }
   }
 
@@ -185,10 +192,14 @@ export class MainBootstrap extends Component {
     this.closeModal();
     this.rewardNode = undefined;
     this.toastNode = undefined;
+    this.meaningToastNode = undefined;
     this.boardRoot = undefined;
     this.status = undefined;
     this.timerLabel = undefined;
     this.homeLevelLabel = undefined;
+    this.staminaPanelNode = undefined;
+    this.staminaPanel = undefined;
+    this.staminaIconNode = undefined;
     this.staminaLabel = undefined;
     this.staminaRecoverLabel = undefined;
     this.tutorialPath = [];
@@ -206,12 +217,11 @@ export class MainBootstrap extends Component {
 
   private renderHomeTopBar(): void {
     const root = this.contentLayer();
-    const panel = this.graphicNode('StaminaPanel', root, -270, 525, 150, 64);
-    panel.fillColor = Color.WHITE;
-    panel.roundRect(-75, -32, 150, 64, 20);
-    panel.fill();
-    this.imageNode('energy', -320, 525, 44, 44, root);
-    this.staminaLabel = this.label('', -250, 525, 27, this.rgb(DARK_BLUE), root, 70);
+    this.staminaPanel = this.graphicNode('StaminaPanel', root, -270, 525, 160, 58);
+    this.staminaPanelNode = (this.staminaPanel as unknown as { node: Node }).node;
+    this.staminaIconNode = this.imageNode('energy', -326, 525, 42, 42, root);
+    this.staminaLabel = this.label('', -250, 525, 27, this.rgb(DARK_BLUE), root, 72);
+    this.staminaRecoverLabel = this.label('', -250, 501, 17, this.rgb(DARK_BLUE, 210), root, 88);
   }
 
   private renderHomeLogo(): void {
@@ -296,9 +306,30 @@ export class MainBootstrap extends Component {
     if (this.staminaLabel) {
       this.staminaLabel.string = String(this.stamina);
     }
+    const remaining = this.nextStaminaMs();
+    const showCountdown = remaining > 0;
     if (this.staminaRecoverLabel) {
-      this.staminaRecoverLabel.string = '';
+      this.staminaRecoverLabel.node.active = showCountdown;
+      this.staminaRecoverLabel.string = showCountdown ? this.formatCountdown(remaining) : '';
     }
+    this.layoutStaminaPanel(showCountdown);
+  }
+
+  private layoutStaminaPanel(showCountdown: boolean): void {
+    const centerY = showCountdown ? 515 : 525;
+    const height = showCountdown ? 78 : 58;
+    if (this.staminaPanel) {
+      const panel = this.staminaPanel;
+      this.staminaPanelNode?.setPosition(-270, centerY);
+      this.staminaPanelNode?.getComponent(UITransform)?.setContentSize(160, height);
+      panel.clear();
+      panel.fillColor = Color.WHITE;
+      panel.roundRect(-80, -height / 2, 160, height, 20);
+      panel.fill();
+    }
+    this.staminaIconNode?.setPosition(-326, showCountdown ? 526 : 525);
+    this.staminaLabel?.node.setPosition(-250, showCountdown ? 532 : 525);
+    this.staminaRecoverLabel?.node.setPosition(-250, 501);
   }
 
   private nextStaminaMs(): number {
@@ -498,6 +529,8 @@ export class MainBootstrap extends Component {
       }
     });
     this.contentRoot = undefined;
+    this.toastNode = undefined;
+    this.meaningToastNode = undefined;
   }
 
   private drawBrandBackground(_showTools = true): void {
@@ -545,7 +578,10 @@ export class MainBootstrap extends Component {
       node.layer = Layers.Enum.UI_2D;
       node.setPosition(x, 545);
       this.contentLayer().addChild(node);
-      node.addComponent(UITransform).setContentSize(52, 44);
+      node.addComponent(UITransform).setContentSize(24, 24);
+      const sprite = node.addComponent(Sprite);
+      sprite.sizeMode = Sprite.SizeMode.CUSTOM;
+      sprite.color = Color.WHITE;
       this.heartNodes.push(node);
     });
     this.refreshHearts();
@@ -553,14 +589,16 @@ export class MainBootstrap extends Component {
 
   private refreshHearts(): void {
     this.heartNodes.forEach((node, index) => {
-      node.removeAllChildren();
-      const g = node.getComponent(Graphics) ?? node.addComponent(Graphics);
-      g.clear();
       const active = index < this.lives;
-      g.fillColor = active ? new Color(255, 245, 245, 255) : new Color(212, 218, 228, 255);
-      g.roundRect(-26, -22, 52, 44, 22);
-      g.fill();
-      this.label('♥', 0, 0, 31, active ? new Color(241, 49, 67, 255) : new Color(157, 166, 180, 255), node, 48);
+      const textureName = active ? 'heart_red' : 'heart_gray';
+      node.name = `Heart_${index}_${textureName}`;
+      const sprite = node.getComponent(Sprite);
+      if (!sprite) return;
+      this.loadSpriteFrame(textureName, (frame) => {
+        if (node.name === `Heart_${index}_${textureName}`) {
+          sprite.spriteFrame = frame;
+        }
+      });
     });
   }
 
@@ -693,9 +731,16 @@ export class MainBootstrap extends Component {
     }
 
     this.found.add(word);
+    this.playWordFoundFeedback(word);
     if (this.found.size === this.words.length) {
       if (this.nextButton) this.nextButton.active = true;
-      this.showReward();
+      this.gameOver = true;
+      this.refreshTimer();
+      this.scheduleOnce(() => {
+        if (this.screen === 'game' && this.found.size === this.words.length) {
+          this.showReward();
+        }
+      }, 0.75);
     }
   }
 
@@ -707,24 +752,28 @@ export class MainBootstrap extends Component {
       this.platform.vibrateShort();
     }
     if (this.lives <= 0) {
-      this.failGame('血量耗尽，挑战失败');
+      this.failGame();
     }
   }
 
-  private failGame(message: string): void {
+  private failGame(): void {
     if (this.gameOver) return;
     this.gameOver = true;
     this.isDragging = false;
     this.selectedPath = [];
     this.refreshTimer();
     this.refreshPathLayer();
-    this.showModal('游戏失败', (root) => {
-      this.label(message, 0, 52, 27, new Color(80, 90, 102, 255), root, 430);
-      this.button('重新开始', 0, -100, 250, 64, () => {
+    this.showModal('游戏结束', (root) => {
+      this.label(FAILURE_MESSAGE, 0, 60, 30, new Color(80, 90, 102, 255), root, 430);
+      this.button('返回主页', -135, -108, 220, 64, () => {
+        this.closeModal();
+        this.returnHome();
+      }, root, DARK_BLUE, 25);
+      this.button('重新开始', 135, -108, 220, 64, () => {
         this.closeModal();
         this.restart();
-      }, root, [220, 95, 82]);
-    });
+      }, root, [255, 115, 37], 25);
+    }, false);
   }
 
   private restart(): void {
@@ -739,6 +788,15 @@ export class MainBootstrap extends Component {
     this.levelIndex = Math.min(MAX_LEVELS - 1, this.levelIndex + 1);
     this.saveProgress();
     this.startCurrentLevel();
+  }
+
+  private shareLevelClear(): void {
+    const level = this.levelIndex + 1;
+    this.platform.share({
+      title: `我通过找词大师第 ${level} 关了，快来一起挑战！`,
+      query: `from=clear-share&level=${level}`,
+      imageUrl: 'icon.png',
+    });
   }
 
   private rotateBoard(): void {
@@ -811,20 +869,10 @@ export class MainBootstrap extends Component {
     this.showModal('提示', (root) => {
       this.label('帮你找到单词首字母开始位置', 0, 58, 25, new Color(45, 56, 68, 255), root, 430);
       this.button('免费试用', 0, -86, 240, 64, () => {
-        void this.tryRewardHint();
+        this.closeModal();
+        this.revealHint();
       }, root, [255, 176, 47]);
     });
-  }
-
-  private async tryRewardHint(): Promise<void> {
-    this.setStatus('正在打开激励广告');
-    const watched = await this.platform.showRewardVideo('word-search-hint');
-    if (!watched && this.hasMiniGameApi()) {
-      this.showToast('广告未完成');
-      return;
-    }
-    this.closeModal();
-    this.revealHint();
   }
 
   private revealHint(): void {
@@ -894,6 +942,39 @@ export class MainBootstrap extends Component {
     }, 0.9);
   }
 
+  private playWordFoundFeedback(word: string): void {
+    if (this.soundEnabled) {
+      this.platform.speakWord(word);
+    }
+    this.showMeaningToast(word);
+  }
+
+  private showMeaningToast(word: string): void {
+    if (this.meaningToastNode) this.meaningToastNode.parent = null;
+
+    const text = `${word}：${getWordMeaning(word)}`;
+    const root = this.contentLayer();
+    const toast = new Node('WordMeaningToast');
+    toast.layer = Layers.Enum.UI_2D;
+    toast.setPosition(0, -512);
+    root.addChild(toast);
+    toast.addComponent(UITransform).setContentSize(590, 62);
+
+    const g = toast.addComponent(Graphics);
+    g.fillColor = new Color(25, 73, 146, 235);
+    g.roundRect(-295, -31, 590, 62, 31);
+    g.fill();
+    this.label(text, 0, 0, 25, Color.WHITE, toast, 530);
+
+    this.meaningToastNode = toast;
+    this.scheduleOnce(() => {
+      if (this.meaningToastNode === toast) {
+        this.meaningToastNode.parent = null;
+        this.meaningToastNode = undefined;
+      }
+    }, 1.5);
+  }
+
   private showCelebration(parent: Node): void {
     const colors = [
       [255, 209, 75],
@@ -961,7 +1042,8 @@ export class MainBootstrap extends Component {
     card.fill();
     this.label('通关成功', 0, 160, 40, Color.WHITE, this.rewardNode, 480);
     this.label(`第 ${this.levelIndex + 1} 关完成`, 0, 52, 34, this.rgb(DARK_BLUE), this.rewardNode, 480);
-    this.circleButton('下一关', 0, -132, DARK_BLUE, () => this.nextLevel(), 118, this.rewardNode);
+    this.circleButton('分享', -112, -132, [69, 197, 191], () => this.shareLevelClear(), 108, this.rewardNode);
+    this.circleButton('下一关', 112, -132, DARK_BLUE, () => this.nextLevel(), 118, this.rewardNode);
   }
 
   private refreshWords(): void {
@@ -1313,6 +1395,20 @@ export class MainBootstrap extends Component {
     });
   }
 
+  private loadSpriteFrame(name: string, onLoaded: (frame: SpriteFrame) => void): void {
+    const cached = this.iconCache.get(name);
+    if (cached) {
+      onLoaded(cached);
+      return;
+    }
+
+    resources.load(`texture/${name}/spriteFrame`, SpriteFrame, (error: Error | null, frame: SpriteFrame) => {
+      if (error || !frame) return;
+      this.iconCache.set(name, frame);
+      onLoaded(frame);
+    });
+  }
+
   private imageNode(
     name: string,
     x: number,
@@ -1583,12 +1679,14 @@ export class MainBootstrap extends Component {
 
   private playSlideSound(pos?: Pos): void {
     if (!this.soundEnabled) return;
+    const pitchIndex = pos ? (pos.row * 2 + pos.col * 3) % 12 : 7;
+    if (this.platform.playSlideTone(pitchIndex)) return;
+
     const ctx = this.getSlideAudioContext();
     if (!ctx) return;
     try {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      const pitchIndex = pos ? (pos.row * 2 + pos.col * 3) % 12 : 7;
       const now = ctx.currentTime;
       osc.type = 'sine';
       osc.frequency.value = 520 + pitchIndex * 42;
@@ -1627,10 +1725,5 @@ export class MainBootstrap extends Component {
     } catch {
       return undefined;
     }
-  }
-
-  private hasMiniGameApi(): boolean {
-    const runtime = globalThis as unknown as { wx?: unknown; tt?: unknown };
-    return Boolean(runtime.wx || runtime.tt);
   }
 }

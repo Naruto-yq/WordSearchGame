@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const root = process.cwd();
@@ -17,24 +18,32 @@ execFileSync(join(root, 'node_modules/.bin/tsc'), [
 ], { stdio: 'inherit' });
 
 const { BoardManager } = require(join(outDir, 'manager/BoardManager.js'));
-const { getLevelRepeatStats } = require(join(outDir, 'core/LevelGenerator.js'));
+const { boardSizeFor, getLevelRepeatStats } = require(join(outDir, 'core/LevelGenerator.js'));
 const { LevelManager } = require(join(outDir, 'manager/LevelManager.js'));
 const { WordManager } = require(join(outDir, 'manager/WordManager.js'));
 const { TouchController } = require(join(outDir, 'game/TouchController.js'));
 
 const stats = getLevelRepeatStats();
-assert.equal(stats.levels, 1000);
+assert.equal(stats.levels, 300);
 assert.ok(
   stats.repeatRate <= 0.1,
   `level word repeat rate should be <= 10%, got ${(stats.repeatRate * 100).toFixed(2)}%`,
 );
 
+const boardSizes = new Set();
+for (let levelId = 1; levelId <= 300; levelId += 1) {
+  boardSizes.add(boardSizeFor(levelId));
+}
+assert.deepEqual([...boardSizes].sort((left, right) => left - right), [6, 7, 8, 9, 10, 11]);
+
 const levelManager = new LevelManager();
-for (let levelId = 1; levelId <= 1000; levelId += 1) {
+const wordMeanings = JSON.parse(readFileSync(join(root, 'assets/resources/config/word_meanings.json'), 'utf8'));
+for (let levelId = 1; levelId <= 300; levelId += 1) {
   const config = await levelManager.loadLevel(levelId);
   assert.equal(new Set(config.words).size, config.words.length, `level ${levelId} should not repeat words inside the level`);
   for (const word of config.words) {
     assert.ok(word.length <= config.boardSize, `${word} should fit level ${levelId} board`);
+    assert.ok(wordMeanings[word], `${word} should have a Chinese meaning`);
   }
 }
 

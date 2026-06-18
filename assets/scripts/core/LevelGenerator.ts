@@ -76,7 +76,7 @@ export function boardSizeFor(levelId: number): number {
   const rank = difficultyRankFor(level);
   if (rank < 5) return rank + 5;
   const phase = wavePhaseFor(level);
-  return level >= 360 && (phase === 4 || phase === 10) ? 11 : 10;
+  return phase === 4 || phase === 10 ? 11 : 10;
 }
 
 export function difficultyRankFor(levelId: number): number {
@@ -239,7 +239,7 @@ function maxWordLengthFor(levelId: number, boardSize: number, minLength: number)
   const rank = difficultyRankFor(levelId);
   if (rank <= 2) return Math.min(boardSize, minLength + 2);
   if (rank === 3) return Math.min(boardSize, minLength + 3);
-  return boardSize;
+  return Math.min(boardSize, 10);
 }
 
 function isPeakLevel(levelId: number): boolean {
